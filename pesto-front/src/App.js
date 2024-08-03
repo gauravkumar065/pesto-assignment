@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { Navigate } from 'react-router-dom';
 import './App.css';
+import axios from 'axios';
 
 
 const App = () => {
@@ -11,6 +12,7 @@ const App = () => {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('To Do');
   const [filter, setFilter] = useState('All');
+  const API_URL = 'http://localhost:3000/api';
 
   
   useEffect(()=>{
@@ -27,6 +29,17 @@ const App = () => {
     fetchSession();
   },[])
 
+  useEffect(()=>{
+    const fetchData = async () => {
+      const { data } = await axios.get(`${API_URL}/tasks`);
+      console.log("Logger -> fetchData -> data:", data)
+       if(data){
+        setTasks([...data]);
+       }
+    };
+
+    fetchData();
+  },[session])
   if (session === undefined) {
     // Session is still being fetched
     return <div>Loading...</div>;
@@ -37,22 +50,44 @@ const App = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const addTask = (e) => {
+  const addTask = async (e) => {
     e.preventDefault();
-    setTasks([...tasks, { id: Date.now(), title, description, status }]);
-    setTitle('');
-    setDescription('');
-    setStatus('To Do');
+    try {
+      const response = await axios.post(`${API_URL}/tasks`, {
+        userid: session.user.id,
+        title,
+        description,
+        status
+      });
+      setTasks([...tasks, response.data.data[0]]);
+      setTitle('');
+      setDescription('');
+      setStatus('To Do');
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
-
-  const updateStatus = (id, newStatus) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, status: newStatus } : task
-    ));
+  
+  const updateStatus = async (id, newStatus) => {
+    try {
+      await axios.patch(`${API_URL}/tasks/${id}`, { status: newStatus });
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, status: newStatus } : task
+      ));
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      // Handle error
+    }
   };
-
-  const deleteTask = (id) => {
-    setTasks(tasks.filter(task => task.id !== id));
+  
+  const deleteTask = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/tasks/${id}`);
+      setTasks(tasks.filter(task => task.id !== id));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      // Handle error
+    }
   };
 
   const filteredTasks = filter === 'All' 
