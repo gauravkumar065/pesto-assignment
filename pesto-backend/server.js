@@ -16,10 +16,13 @@ app.use(express.json());
 
 // Define routes
 app.get('/api/tasks', async (req, res) => {
+  console.log("Logger -> app.get -> req:", req.query)
   try {
+    const userid= req.query.userid
     const { data, error } = await supabase
       .from('tasks')
-      .select('*');
+      .select('*')
+      .eq('userid', userid);
     
     if (error) throw error;
     

@@ -19,7 +19,6 @@ const App = () => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        console.log("Logger -> fetchUser -> user:", data.session);
         setSession(null);
       } else {
         setSession(data.session);
@@ -31,8 +30,9 @@ const App = () => {
 
   useEffect(()=>{
     const fetchData = async () => {
-      const { data } = await axios.get(`${API_URL}/tasks`);
-      console.log("Logger -> fetchData -> data:", data)
+      const { data } = await axios.get(`${API_URL}/tasks`, {params: {
+        userid: session.user.id,      // Example parameter
+      }});
        if(data){
         setTasks([...data]);
        }
