@@ -29,16 +29,17 @@ const App = () => {
   },[])
 
   useEffect(()=>{
-    const fetchData = async () => {
-      const { data } = await axios.get(`${API_URL}/tasks`, {params: {
-        userid: session.user.id,      // Example parameter
-      }});
-       if(data){
-        setTasks([...data]);
-       }
-    };
-
-    fetchData();
+    if(session){
+      const fetchData = async () => {
+        const { data } = await axios.get(`${API_URL}/tasks`, {params: {
+          userid: session.user.id,      // Example parameter
+        }});
+         if(data){
+          setTasks([...data]);
+         }
+      };
+      fetchData();
+    }
   },[session])
   if (session === undefined) {
     // Session is still being fetched
